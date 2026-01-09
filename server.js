@@ -15,7 +15,7 @@ const server = http.createServer(app); // Create HTTP server for Socket.io
 const io = new Server(server, {
   cors: {
     origin: ["https://stagger-beta.vercel.app","http://localhost:5174"],// Your Vite frontend URL
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST","PUT",'DELETE'],
   },
 });
 
