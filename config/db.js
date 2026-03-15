@@ -1,11 +1,18 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+import 'dotenv/config'; // This ensures env variables are loaded here too
 
 const connectDB = async () => {
   try {
-    await mongoose.connect('mongodb+srv://davidayokanmbi:david@cluster0.8vryv85.mongodb.net/');
-    console.log("🔥 MongoDB Connected Successfully");
+    const uri = process.env.MONGO_URI;
+    
+    if (!uri) {
+      throw new Error("MONGO_URI is undefined. Check your .env file location!");
+    }
+
+    const conn = await mongoose.connect(uri);
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error("❌ MongoDB Connection Error:", error);
+    console.error(`❌ Error: ${error.message}`);
     process.exit(1);
   }
 };
