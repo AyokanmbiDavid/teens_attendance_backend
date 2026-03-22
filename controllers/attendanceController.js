@@ -31,6 +31,17 @@ export const markPresent = async (req, res) => {
     }
 };
 
+export const updateAttendance = async (req,res) => {
+    try{
+        const {id} = req.params;
+        const findattendance = await Attendance.findByIdAndUpdate(id, req.body, {new:true});
+        if(!findattendance) return res.status(400).json({message: "attendance does not exist || not found"})
+        res.json(req.body)
+    } catch (error) {
+        res.status(500).json({ message: err.message });
+    }
+}
+
 export const getAllAttendance = async (req, res) => {
     try {
         const history = await Attendance.find().sort({ createdAt: -1 });

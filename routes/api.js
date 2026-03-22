@@ -11,7 +11,7 @@ router.put('/members/:id', memberCtrl.updateMember);      // Edit Member
 
 router.get('/attendance', attendCtrl.getAllAttendance);
 router.post('/attendance', attendCtrl.createAttendance);
-router.patch('/attendance/mark', attendCtrl.markPresent);
+router.put('/attendance/mark/:id', attendCtrl.updateAttendance)
 // Add these two lines to your existing routes
 router.delete('/attendance/:id', attendCtrl.deleteAttendance); // Delete Attendance Record
 
