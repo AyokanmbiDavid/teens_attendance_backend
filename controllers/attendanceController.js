@@ -14,28 +14,14 @@ export const createAttendance = async (req, res) => {
     }
 };
 
-export const markPresent = async (req, res) => {
-    try {
-        const { id, memberId } = req.body;
-        const record = await Attendance.findById(id);
-        const person = record.roll.find(p => p.memberId.toString() === memberId);
-        if (person) {
-            person.present = !person.present;
-            await record.save();
-            res.json(record);
-        } else {
-            res.status(404).json({ message: "Member not found" });
-        }
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-};
 
 export const updateAttendance = async (req,res) => {
     try{
         const {id} = req.params;
         const findattendance = await Attendance.findByIdAndUpdate(id, req.body, {new:true});
-        if(!findattendance) return res.status(400).json({message: "attendance does not exist || not found"})
+        if(!findattendance) {
+            res.status(404).json({message: "attendance does not exist || not found"})
+        }
         res.json(req.body)
     } catch (error) {
         res.status(500).json({ message: err.message });
