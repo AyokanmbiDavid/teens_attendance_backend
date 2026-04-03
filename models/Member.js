@@ -1,9 +1,13 @@
 import mongoose from 'mongoose';
 
 const memberSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  phone_number: { type: String, required: true },
+  surname: {type: String, required: true},
+  first_name : { type: String, required: true },
+  middle_name : {type: String, required: true},
+  gender: {type: String},
+  phone_number: { type: String},
   date_of_birth: { type: String },
+  email_address: {type: String},
 }, { timestamps: true });
 
 // CHANGE THIS LINE:
