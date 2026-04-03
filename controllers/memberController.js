@@ -3,15 +3,15 @@ import Member from '../models/Member.js';
 export const addMember = async (req, res) => {
     try {
         // This line prevents the "Cannot destructure" crash
-        const { title, phone_number, date_of_birth } = req.body || {};
+        const { surname,firstName,middleName,phoneNumber, dateOfBirth,gender,emailAddress } = req.body || {};
 
-        if (!title || !phone_number) {
+        if (!surname || !firstName || !middleName || !phoneNumber) {
             return res.status(400).json({ 
                 message: "Body is empty or missing title/phone. Check your Postman settings!" 
             });
         }
 
-        const newMember = new Member({ title, phone_number, date_of_birth });
+        const newMember = new Member({ surname,firstName,middleName,phoneNumber,dateOfBirth,gender,emailAddress});
         await newMember.save();
         res.status(201).json(newMember);
     } catch (err) {
@@ -31,7 +31,7 @@ export const getAllMembers = async (req, res) => {
 // Add this to your existing exports
 export const updateMember = async (req, res) => {
     try {
-        const { id } = req.params;
+        const {id} = req.params;
         const updatedMember = await Member.findByIdAndUpdate(id, req.body, { new: true });
         if (!updatedMember) return res.status(404).json({ message: "Member not found" });
         res.json(updatedMember);
