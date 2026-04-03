@@ -5,7 +5,7 @@ export const createAttendance = async (req, res) => {
     try {
         const { year, month, week } = req.body;
         const members = await Member.find();
-        const roll = members.map(m => ({ memberId: m._id, title: m.surname + " " + m.firstName, present: null }));
+        const roll = members.map(m => ({ memberId: m._id, title:`${ m.surname} ${m.firstName}`, present: null }));
         const newRecord = new Attendance({ year, month, week, roll });
         await newRecord.save();
         res.status(201).json(newRecord);
