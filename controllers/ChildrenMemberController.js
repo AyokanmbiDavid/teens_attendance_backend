@@ -29,7 +29,7 @@ export const getMembersByClass = async (req, res) => {
 export const addMemberToClass = async (req, res) => {
     const { theclass } = req.params; 
     const { firstname, lastname, middlename, dateofbirth, gender } = req.body;
-
+  
     if (!firstname || !lastname || !dateofbirth || !gender) {
         return res.status(400).json({ error: 'firstname, lastname, gender, and dateofbirth are required' });
     }
@@ -38,7 +38,7 @@ export const addMemberToClass = async (req, res) => {
         const newMember = new ChildrenMember({
             firstname,
             lastname,
-            middlename: middlename || "",
+            middlename: middlename || "", 
             dob: parseDate(dateofbirth),
             gender: gender.toLowerCase(),
             theclass: theclass.toLowerCase() // Automatically captures class from path

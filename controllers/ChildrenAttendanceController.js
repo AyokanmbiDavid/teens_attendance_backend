@@ -1,103 +1,106 @@
-import Attendance from "../models/ChildrenAttendance.js";
-import ChildrenMember from "../models/ChildrenMember.js";
+import ChildrenAttendance from '../models/ChildrenAttendance.js';
+import ChildrenMember from '../models/ChildrenMember.js';
 
-// Helper function to format full display title cleanly
-const buildMemberTitle = (m) => {
-    return m.middlename ? `${m.lastname} ${m.firstname} ${m.middlename}` : `${m.lastname} ${m.firstname}`;
-};
-
-// 1. Get All Attendance Records
-export const getallattendance = async (req, res) => {
-    try {
-        const records = await Attendance.find({});
-        return res.status(200).json(records);
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
-    }
-};
-
-// 2. Filter Specific Attendance Periods
-export const getattendance = async (req, res) => {
-    const { year, month, week } = req.body;
-    if (!year || !month || !week) return res.status(400).json({ error: 'attendance header required' });
-
-    try {
-        const findatt = await Attendance.find({
-            year: { $regex: new RegExp(`^${year}$`, 'i') },
-            month: { $regex: new RegExp(`^${month}$`, 'i') },
-            week: { $regex: new RegExp(`^${week}$`, 'i') }
-        });
-        return res.status(200).json(findatt);
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
-    }
-};
-
-// 3. Create Attendance Matrix
 export const createattendance = async (req, res) => {
-    const { year, month, week } = req.body;
-    if (!year || !month || !week) return res.status(400).json({ error: 'attendance header required' });
-
     try {
+        const { year, month, week } = req.body;
+        
+        // 1. Fetch only active children
         const allChildren = await ChildrenMember.find({ active: true });
 
-        const fourroll = allChildren
-            .filter(m => m.theclass === 'four')
-            .map(m => ({ id: m._id, title: buildMemberTitle(m), present: null }));
+        // Helper to format names using correct lowercase database fields
+        const buildTitle = (m) => m.middlename ? `${m.lastname} ${m.firstname} ${m.middlename}` : `${m.lastname} ${m.firstname}`;
 
-        const sixroll = allChildren
-            .filter(m => m.theclass === 'six')
-            .map(m => ({ id: m._id, title: buildMemberTitle(m), present: null }));
+        // 2. Separate into specific class rosters matching your original schema
+        const fourroll = allChildren.filter(m => m.theclass === 'four').map(m => ({ id: m._id.toString(), title: buildTitle(m), present: null }));
+        const sixroll = allChildren.filter(m => m.theclass === 'six').map(m => ({ id: m._id.toString(), title: buildTitle(m), present: null }));
+        const nineroll = allChildren.filter(m => m.theclass === 'nine').map(m => ({ id: m._id.toString(), title: buildTitle(m), present: null }));
 
-        const nineroll = allChildren
-            .filter(m => m.theclass === 'nine')
-            .map(m => ({ id: m._id, title: buildMemberTitle(m), present: null }));
-
-        const newattendance = new Attendance({
-            year, month, week,
+        // 3. Save matching your exact nested attroll configuration
+        const newRecord = new ChildrenAttendance({ 
+            year, 
+            month: month.toLowerCase(), 
+            week: week.toLowerCase(), 
             attroll: [
                 { theclass: 'four', roll: fourroll },
                 { theclass: 'six', roll: sixroll },
                 { theclass: 'nine', roll: nineroll }
-            ]
+            ] 
         });
 
-        await newattendance.save();
-        return res.status(201).json({ message: 'new attendance created', data: newattendance });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
+        await newRecord.save();
+        return res.status(201).json(newRecord);
+    } catch (err) {
+        return res.status(500).json({ message: err.message });
     }
 };
 
-// 4. Update Attendance Roll Records
+// 2. Update Attendance Roll Records (FIXED)
 export const updateattendance = async (req, res) => {
-    const { id } = req.params;
-    const { attroll } = req.body;
-    if (!id) return res.status(400).json({ error: 'attendance id required' });
-
     try {
-        const updatedRecord = await Attendance.findByIdAndUpdate(
-            id,
-            { $set: { attroll: attroll } },
+        const { id } = req.params;
+        const { attroll } = req.body; // Safely destructure the incoming payload
+
+        if (!attroll) {
+            return res.status(400).json({ message: "attroll data array is required for update" });
+        }
+
+        // FIXED: Uses explicit $set operator to protect year/month fields from corruption
+        const findattendance = await ChildrenAttendance.findByIdAndUpdate(
+            id, 
+            { $set: { attroll: attroll } }, 
             { new: true, runValidators: true }
         );
-        if (!updatedRecord) return res.status(404).json({ error: 'Attendance record not found' });
-        return res.status(200).json({ message: 'attendance updated', data: updatedRecord });
+
+        if (!findattendance) {
+            return res.status(404).json({ message: "attendance does not exist || not found" }); 
+        }
+
+        return res.json(findattendance); 
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ message: error.message }); 
     }
 };
 
-// 5. Delete Attendance Records
-export const deleteattendance = async (req, res) => {
-    const { id } = req.params;
-    if (!id) return res.status(400).json({ error: 'attendance id required' });
 
+// 3. Get All Attendance Records
+export const getallattendance = async (req, res) => {
     try {
-        const deletedRecord = await Attendance.findByIdAndDelete(id);
-        if (!deletedRecord) return res.status(404).json({ error: 'Attendance record not found' });
-        return res.status(200).json({ message: 'attendance deleted' });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
+        const history = await ChildrenAttendance.find().sort({ createdAt: -1 });
+        res.json(history);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+}; 
+
+// 4. Delete Attendance Records
+export const deleteattendance = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deleted = await ChildrenAttendance.findByIdAndDelete(id);
+        if (!deleted) return res.status(404).json({ message: "Record not found" });
+        res.json({ message: "Attendance record deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// 5. Filter Specific Attendance (Added to handle incoming frontend POST syncs)
+export const getattendance = async (req, res) => {
+    try {
+        const { year, month, week } = req.body;
+        if (!year || !month || !week) {
+            return res.status(400).json({ message: "attendance header required" });
+        }
+
+        const findatt = await ChildrenAttendance.findOne({
+            year: year.toString().trim(),
+            month: month.toString().trim(),
+            week: week.toString().trim()
+        });
+
+        res.json(findatt);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 };

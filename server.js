@@ -6,14 +6,34 @@ import apiRoutes from './routes/api.js';
 import dns from 'dns';
 
 dns.setServers(['1.1.1.1', '8.8.8.8']);
+dns.setDefaultResultOrder('ipv4first'); 
 const app = express();
 
-// These two lines are the "Cheat Code" to fix your error
-app.use(cors());
-app.use(express.json())
+app.use(cors({
+  origin: [
+    'https://miracle-center-teenager-attendance.vercel.app', // Removed trailing slash
+    'http://localhost:5173',
+    'http://localhost:5174'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+  allowedHeaders: ['Content-Type', 'Authorization'] 
+}));
 
-// Now your routes can use req.body
+app.use(express.json());
+
+// Routes
 app.use('/api', apiRoutes);
 
-connectDB();
-app.listen(5000, () => console.log('🚀 Server running'));
+// Fix: Connect to DB first, then start the server
+const startServer = async () => {
+  try {
+    await connectDB();
+    const PORT = process.env.PORT || 5000; // Dynamic port for production
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  } catch (error) {
+    console.error('❌ Database connection failed:', error.message);
+    process.exit(1);
+  }
+};
+
+startServer();

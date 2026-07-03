@@ -9,8 +9,12 @@ const connectDB = async () => {
       throw new Error("MONGO_URI is undefined. Check your .env file location!");
     }
 
-    const conn = await mongoose.connect(uri);
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    // Pass dbName in the options object to force Mongoose into teens_db
+    const conn = await mongoose.connect(uri, {
+      dbName: 'teens_db' 
+    });
+    
+    console.log(`✅ MongoDB Connected to: ${conn.connection.name}`); // Changed .host to .name to verify the DB name
   } catch (error) {
     console.error(`❌ Error: ${error.message}`);
     process.exit(1);
