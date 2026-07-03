@@ -11,10 +11,10 @@ const app = express();
 
 app.use(cors({
   origin: [
-    'https://miracle-center-teenager-attendance.vercel.app', // Removed trailing slash
+    'https://miracle-center-teenager-attendance.vercel.app',
+    'https://miracle-center-children-attendance.vercel.app', // Removed trailing slash
     'http://localhost:5173',
-    'http://localhost:5174',
-    'https://miracle-center-children-attendance.vercel.app/'
+    'http://localhost:5174'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'], 
   allowedHeaders: ['Content-Type', 'Authorization'] 
