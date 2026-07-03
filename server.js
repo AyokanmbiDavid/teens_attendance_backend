@@ -3,12 +3,14 @@ import cors from 'cors';
 import 'dotenv/config';
 import connectDB from './config/db.js';
 import apiRoutes from './routes/api.js';
+import dns from 'dns';
 
+dns.setServers(['1.1.1.1', '8.8.8.8']);
 const app = express();
 
 // These two lines are the "Cheat Code" to fix your error
 app.use(cors());
-app.use(express.json()); 
+app.use(express.json())
 
 // Now your routes can use req.body
 app.use('/api', apiRoutes);
